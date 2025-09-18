@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SynaptiCon - The Smart Waste Segregator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0fff0 50%, #e0f7e0 100%);
+            min-height: 100vh;
+            color: #2d5a2d;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #2e8b57 0%, #20b2aa 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(46, 139, 87, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: #32cd32;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .title-section h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 0.2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .title-section p {
+            color: #e0ffe0;
+            font-size: 1rem;
+        }
+
+        .badges {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Navigation */
+        .nav {
+            background: rgba(255,255,255,0.9);
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 2rem;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(46, 139, 87, 0.2);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #2e8b57;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: #2e8b57;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: #2e8b57;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            background: #32cd32;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: #228b22;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(50, 205, 50, 0.3);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: rgba(255,255,255,0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #7dd87d;
+            margin-bottom: 1rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            color: #2e8b57;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-subtitle {
+            color: #20b2aa;
+            font-size: 1rem;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .content-item, .video-item {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .content-item:hover, .video-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(46, 139, 87, 0.2);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #7dd87d, #20b2aa);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #2e8b57;
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            background: white;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .item-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #ffa500;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .item-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2e8b57;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #32cd32;
+            box-shadow: 0 0 0 3px rgba(50, 205, 50, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            background: #ccc;
+            color: #333;
+        }
+
+        /* Video Player */
+        .video-player {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .video-player video {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">♻</div>
+                <div class="title-section">
+                    <h1>SynaptiCon</h1>
+                    <p>The Smart Waste Segregator</p>
+                </div>
+            </div>
+            <div class="badges">
+                <span class="badge">🌱 Eco-Tech</span>
+                <span class="badge">🤖 Green AI</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <button class="nav-btn active" onclick="switchSection('content')">
+            📝 Content Management
+        </button>
+        <button class="nav-btn" onclick="switchSection('video')">
+            🎬 Video Gallery
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Animated Content Section -->
+        <section id="content-section" class="section active">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>📱</span>
+                    Animated Content
+                </h2>
+                <button class="action-btn" onclick="showAddContentModal()">
+                    ➕ Add Content
+                </button>
+            </div>
+            
+            <div id="content-area">
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <div class="empty-title">No Content Yet</div>
+                    <div class="empty-subtitle">Add your first animated content to get started!</div>
+                </div>
+            </div>
+            
+            <div id="content-list" class="content-grid"></div>
+        </section>
+
+        <!-- Video Gallery Section -->
+        <section id="video-section" class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>🎬</span>
+                    Video Gallery
+                </h2>
+                <button class="action-btn" onclick="showUploadVideoModal()">
+                    📤 Upload Video
+                </button>
+            </div>
+            
+            <div id="video-area">
+                <div class="empty-state">
+                    <div class="empty-icon">🎥</div>
+                    <div class="empty-title">No Videos Yet</div>
+                    <div class="empty-subtitle">Upload your first video to get started!</div>
+                </div>
+            </div>
+            
+            <div id="video-list" class="content-grid"></div>
+        </section>
+    </main>
+
+    <!-- Add Content Modal -->
+    <div id="content-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Animated Content</h3>
+                <button class="close-btn" onclick="closeModal('content-modal')">&times;</button>
+            </div>
+            <form id="content-form">
+                <div class="form-group">
+                    <label for="content-title">Title</label>
+                    <input type="text" id="content-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="content-description">Description</label>
+                    <textarea id="content-description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="content-password">Password</label>
+                    <input type="password" id="content-password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="action-btn btn-secondary" onclick="closeModal('content-modal')">Cancel</button>
+                    <button type="submit" class="action-btn">Add Content</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Video Modal -->
+    <div id="video-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Video</h3>
+                <button class="close-btn" onclick="closeModal('video-modal')">&times;</button>
+            </div>
+            <form id="video-form">
+                <div class="form-group">
+                    <label for="video-title">Video Title</label>
+                    <input type="text" id="video-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="video-file">Video File</label>
+                    <input type="file" id="video-file" accept="video/*" required>
+                </div>
+                <div class="form-group">
+                    <label for="video-password">Password</label>
+                    <input type="password" id="video-password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="action-btn btn-secondary" onclick="closeModal('video-modal')">Cancel</button>
+                    <button type="submit" class="action-btn">Upload Video</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Content Modal -->
+    <div id="edit-content-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Content</h3>
+                <button class="close-btn" onclick="closeModal('edit-content-modal')">&times;</button>
+            </div>
+            <form id="edit-content-form">
+                <div class="form-group">
+                    <label for="edit-content-title">Title</label>
+                    <input type="text" id="edit-content-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-content-description">Description</label>
+                    <textarea id="edit-content-description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-content-password">Password</label>
+                    <input type="password" id="edit-content-password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="action-btn btn-secondary" onclick="closeModal('edit-content-modal')">Cancel</button>
+                    <button type="submit" class="action-btn">Update Content</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div id="video-player-modal" class="modal">
+        <div class="modal-content" style="max-width: 90%; max-height: 90%;">
+            <div class="modal-header">
+                <h3 id="playing-video-title">Video Player</h3>
+                <button class="close-btn" onclick="closeVideoPlayer()">&times;</button>
+            </div>
+            <div class="video-player">
+                <video id="video-player" controls>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        const PASSWORD = '19762004';
+        let contents = [];
+        let videos = [];
+        let editingContentId = null;
+
+        // Initialize the website
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateUI();
+        });
+
+        // Section switching
+        function switchSection(section) {
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update sections
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(section + '-section').classList.add('active');
+            
+            updateUI();
+        }
+
+        // Modal functions
+        function showAddContentModal() {
+            document.getElementById('content-modal').style.display = 'block';
+        }
+
+        function showUploadVideoModal() {
+            document.getElementById('video-modal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            // Clear forms
+            document.querySelectorAll(`#${modalId} form`).forEach(form => form.reset());
+        }
+
+        function closeVideoPlayer() {
+            const video = document.getElementById('video-player');
+            video.pause();
+            video.src = '';
+            closeModal('video-player-modal');
+        }
+
+        // Content management
+        document.getElementById('content-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('content-password').value;
+            if (password !== PASSWORD) {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            const title = document.getElementById('content-title').value;
+            const description = document.getElementById('content-description').value;
+            
+            const newContent = {
+                id: Date.now(),
+                title,
+                description,
+                createdAt: new Date().toLocaleDateString()
+            };
+            
+            contents.push(newContent);
+            saveData();
+            updateUI();
+            closeModal('content-modal');
+            
+            // Show success animation
+            showSuccessMessage('Content added successfully!');
+        });
+
+        // Video upload
+        document.getElementById('video-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('video-password').value;
+            if (password !== PASSWORD) {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            const title = document.getElementById('video-title').value;
+            const file = document.getElementById('video-file').files[0];
+            
+            if (!file) {
+                alert('Please select a video file!');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newVideo = {
+                    id: Date.now(),
+                    title,
+                    src: e.target.result,
+                    createdAt: new Date().toLocaleDateString()
+                };
+                
+                videos.push(newVideo);
+                saveData();
+                updateUI();
+                closeModal('video-modal');
+                
+                showSuccessMessage('Video uploaded successfully!');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Edit content
+        function editContent(id) {
+            const content = contents.find(c => c.id === id);
+            if (!content) return;
+            
+            editingContentId = id;
+            document.getElementById('edit-content-title').value = content.title;
+            document.getElementById('edit-content-description').value = content.description;
+            document.getElementById('edit-content-modal').style.display = 'block';
+        }
+
+        document.getElementById('edit-content-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('edit-content-password').value;
+            if (password !== PASSWORD) {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            const contentIndex = contents.findIndex(c => c.id === editingContentId);
+            if (contentIndex === -1) return;
+            
+            contents[contentIndex].title = document.getElementById('edit-content-title').value;
+            contents[contentIndex].description = document.getElementById('edit-content-description').value;
+            
+            saveData();
+            updateUI();
+            closeModal('edit-content-modal');
+            editingContentId = null;
+            
+            showSuccessMessage('Content updated successfully!');
+        });
+
+        // Delete functions
+        function deleteContent(id) {
+            const password = prompt('Enter password to delete:');
+            if (password !== PASSWORD) {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this content?')) {
+                contents = contents.filter(c => c.id !== id);
+                saveData();
+                updateUI();
+                showSuccessMessage('Content deleted successfully!');
+            }
+        }
+
+        function deleteVideo(id) {
+            const password = prompt('Enter password to delete:');
+            if (password !== PASSWORD) {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this video?')) {
+                videos = videos.filter(v => v.id !== id);
+                saveData();
+                updateUI();
+                showSuccessMessage('Video deleted successfully!');
+            }
+        }
+
+        function renameVideo(id) {
+            const password = prompt('Enter password to rename:');
+            if (password !== PASSWORD) {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            const video = videos.find(v => v.id === id);
+            if (!video) return;
+            
+            const newTitle = prompt('Enter new title:', video.title);
+            if (newTitle && newTitle.trim()) {
+                video.title = newTitle.trim();
+                saveData();
+                updateUI();
+                showSuccessMessage('Video renamed successfully!');
+            }
+        }
+
+        // Play video
+        function playVideo(id) {
+            const video = videos.find(v => v.id === id);
+            if (!video) return;
+            
+            document.getElementById('playing-video-title').textContent = video.title;
+            document.getElementById('video-player').src = video.src;
+            document.getElementById('video-player-modal').style.display = 'block';
+        }
+
+        // UI Update
+        function updateUI() {
+            updateContentList();
+            updateVideoList();
+        }
+
+        function updateContentList() {
+            const contentArea = document.getElementById('content-area');
+            const contentList = document.getElementById('content-list');
+            
+            if (contents.length === 0) {
+                contentArea.style.display = 'block';
+                contentList.style.display = 'none';
+            } else {
+                contentArea.style.display = 'none';
+                contentList.style.display = 'grid';
+                
+                contentList.innerHTML = contents.map(content => `
+                    <div class="content-item">
+                        <h3 style="color: #2e8b57; margin-bottom: 0.5rem;">${content.title}</h3>
+                        <p style="color: #666; margin-bottom: 1rem; line-height: 1.5;">${content.description}</p>
+                        <small style="color: #999;">Added: ${content.createdAt}</small>
+                        <div class="item-actions">
+                            <button class="item-btn edit-btn" onclick="editContent(${content.id})">✏️ Edit</button>
+                            <button class="item-btn delete-btn" onclick="deleteContent(${content.id})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateVideoList() {
+            const videoArea = document.getElementById('video-area');
+            const videoList = document.getElementById('video-list');
+            
+            if (videos.length === 0) {
+                videoArea.style.display = 'block';
+                videoList.style.display = 'none';
+            } else {
+                videoArea.style.display = 'none';
+                videoList.style.display = 'grid';
+                
+                videoList.innerHTML = videos.map(video => `
+                    <div class="video-item">
+                        <div class="video-thumbnail" onclick="playVideo(${video.id})">
+                            <div class="play-button">▶</div>
+                        </div>
+                        <h3 style="color: #2e8b57; margin-bottom: 0.5rem;">${video.title}</h3>
+                        <small style="color: #999;">Uploaded: ${video.createdAt}</small>
+                        <div class="item-actions">
+                            <button class="item-btn edit-btn" onclick="renameVideo(${video.id})">✏️ Rename</button>
+                            <button class="item-btn delete-btn" onclick="deleteVideo(${video.id})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Data persistence
+        function saveData() {
+            const data = { contents, videos };
+            // In a real application, this would save to a server
+            // For now, we'll use sessionStorage for demonstration
+            sessionStorage.setItem('synapticonData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const savedData = sessionStorage.getItem('synapticonData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                contents = data.contents || [];
+                videos = data.videos || [];
+            }
+        }
+
+        // Success message
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.innerHTML = `
+                <div style="position: fixed; top: 20px; right: 20px; background: #32cd32; color: white; 
+                           padding: 1rem 2rem; border-radius: 10px; z-index: 10000; 
+                           box-shadow: 0 4px 20px rgba(50, 205, 50, 0.3);
+                           animation: slideInRight 0.5s ease;">
+                    ✅ ${message}
+                </div>
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.style.animation = 'fadeOut 0.5s ease';
+                setTimeout(() => successDiv.remove(), 500);
+            }, 3000);
+        }
+
+        // Add some CSS for animations
+        const additionalStyles = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = additionalStyles;
+        document.head.appendChild(styleSheet);
+    </script>
+</body>
+</html>
