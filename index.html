@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SynaptiCon - The Smart Waste Segregator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #00ff88;
+            --secondary-green: #00cc6a;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --surface-bg: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-accent: #00ff88;
+            --border-color: #333333;
+            --shadow-color: rgba(0, 255, 136, 0.2);
+            --glow-color: rgba(0, 255, 136, 0.4);
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--dark-bg);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 204, 106, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(0, 255, 136, 0.03) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--surface-bg) 100%);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            animation: scan 3s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--dark-bg);
+            animation: logoFloat 4s ease-in-out infinite;
+            box-shadow: 0 0 20px var(--glow-color);
+            position: relative;
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            border-radius: 17px;
+            z-index: -1;
+            opacity: 0.5;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-5px) rotate(5deg); }
+            66% { transform: translateY(5px) rotate(-5deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .title-section h1 {
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            margin-bottom: 0.3rem;
+            text-shadow: 2px 2px 10px var(--shadow-color);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .title-section p {
+            color: var(--text-accent);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .badges {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .badge {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary-green);
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            animation: badgeGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 136, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.6); }
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--card-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 2rem;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .nav::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-green), transparent);
+            animation: navLine 4s ease-in-out infinite;
+        }
+
+        @keyframes navLine {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            padding: 0.8rem 2rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            color: var(--dark-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--shadow-color);
+            border-color: var(--primary-green);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 3rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: none;
+            animation: sectionFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes sectionFadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 700;
+        }
+
+        .section-title span {
+            font-size: 3rem;
+            animation: titleIconSpin 8s linear infinite;
+        }
+
+        @keyframes titleIconSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            color: var(--dark-bg);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.6s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .action-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--shadow-color);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: var(--card-bg);
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .empty-state::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            border-radius: 27px;
+            z-index: -1;
+            opacity: 0.1;
+            animation: borderGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            color: var(--primary-green);
+            margin-bottom: 2rem;
+            animation: emptyIconFloat 3s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes emptyIconFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
+        }
+
+        .empty-title {
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .empty-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        .content-item, .video-item {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-item::before, .video-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.05), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .content-item:hover::before, .video-item:hover::before {
+            left: 100%;
+        }
+
+        .content-item:hover, .video-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px var(--shadow-color);
+            border-color: var(--primary-green);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .video-thumbnail::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+            animation: thumbnailShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes thumbnailShimmer {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--dark-bg);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .play-button:hover {
+            background: white;
+            transform: translate(-50%, -50%) scale(1.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .item-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .edit-btn {
+            background: linear-gradient(45deg, #ff9500, #ffb347);
+            color: var(--dark-bg);
+        }
+
+        .delete-btn {
+            background: linear-gradient(45deg, #ff4757, #ff6b7a);
+            color: white;
+        }
+
+        .item-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 25px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes modalSlideIn {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h3 {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.7rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: var(--primary-green);
+            color: var(--dark-bg);
+            transform: scale(1.1);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: var(--text-accent);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: var(--surface-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
+            background: var(--card-bg);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn-secondary {
+            background: var(--surface-bg);
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Video Player */
+        .video-player {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--dark-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-player video {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            color: var(--dark-bg);
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 12px 40px var(--shadow-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 2rem;
+                text-align: center;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .modal-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid var(--primary-green);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Success Toast */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            color: var(--dark-bg);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            z-index: 10000;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            animation: toastSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        @keyframes toastSlideIn {
+            from { 
+                transform: translateX(100%); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateX(0); 
+                opacity: 1; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">🤖</div>
+                <div class="title-section">
+                    <h1>SynaptiCon</h1>
+                    <p>Smart Waste Segregation AI</p>
+                </div>
+            </div>
+            <div class="badges">
+                <span class="badge">🌱 EcoTech</span>
+                <span class="badge">🤖 GreenAI</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <button class="nav-btn active" onclick="switchSection('content')">
+            📱 Content Hub
+        </button>
+        <button class="nav-btn" onclick="switchSection('video')">
+            🎬 Video Vault
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Animated Content Section -->
+        <section id="content-section" class="section active">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>📱</span>
+                    Content Repository
+                </h2>
+                <button class="action-btn" onclick="showAddContentModal()">
+                    ➕ Create Content
+                </button>
+            </div>
+            
+            <div id="content-area">
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <div class="empty-title">Content Vault Empty</div>
+                    <div class="empty-subtitle">Initialize your first animated content module</div>
+                </div>
+            </div>
+            
+            <div id="content-list" class="content-grid"></div>
+        </section>
+
+        <!-- Video Gallery Section -->
+        <section id="video-section" class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>🎬</span>
+                    Media Archive
+                </h2>
+                <button class="action-btn" onclick="showUploadVideoModal()">
+                    📤 Upload Media
+                </button>
+            </div>
+            
+            <div id="video-area">
+                <div class="empty-state">
+                    <div class="empty-icon">🎥</div>
+                    <div class="empty-title">Media Archive Empty</div>
+                    <div class="empty-subtitle">Upload your first training video</div>
+                </div>
+            </div>
+            
+            <div id="video-list" class="content-grid"></div>
+        </section>
+    </main>
+
+    <!-- Add Content Modal -->
+    <div id="content-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Content</h3>
+                <button class="close-btn" onclick="closeModal('content-modal')">&times;</button>
+            </div>
+            <form id="content-form">
+                <div class="form-group">
+                    <label for="content-title">Content Title</label>
+                    <input type="text" id="content-title" required placeholder="Enter content title...">
+                </div>
+                <div class="form-group">
+                    <label for="content-description">Description</label>
+                    <textarea id="content-description" rows="4" required placeholder="Describe your content..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="content-password">Security Code</label>
+                    <input type="password" id="content-password" required placeholder="Enter security code...">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="action-btn btn-secondary" onclick="closeModal('content-modal')">Cancel</button>
+                    <button type="submit" class="action-btn">Create Content</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Video Modal -->
+    <div id="video-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Training Video</h3>
+                <button class="close-btn" onclick="closeModal('video-modal')">&times;</button>
+            </div>
+            <form id="video-form">
+                <div class="form-group">
+                    <label for="video-title">Video Title</label>
+                    <input type="text" id="video-title" required placeholder="Enter video title...">
+                </div>
+                <div class="form-group
